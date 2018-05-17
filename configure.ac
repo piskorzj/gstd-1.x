@@ -41,6 +41,19 @@ AC_CHECK_PROG(HAVE_PKGCONFIG, pkg-config, [ ], [
   AC_MSG_ERROR([You need to have pkg-config installed or set the PATH.])
 ])
 
+PKG_CHECK_MODULES(SYSTEMD, [
+    libsystemd
+  ], [
+    AC_SUBST(SYSTEMD_CFLAGS)
+    AC_SUBST(SYSTEMD_LIBS)
+  ], [
+  AC_MSG_ERROR([
+    Can't find the systemd delopment packages:
+
+      libsystemd
+  ])
+])
+
 PKG_CHECK_MODULES(GST, [
     gstreamer-1.0              >= $GST_REQUIRED
     gstreamer-base-1.0         >= $GST_REQUIRED

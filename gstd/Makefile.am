@@ -62,10 +62,11 @@ gstd_CFLAGS = $(GST_CFLAGS)					\
 	      $(GIO_CFLAGS)					\
 	      $(GJSON_CFLAGS)					\
 	      $(LIBD_CFLAGS)					\
+	      $(SYSTEMD_CFLAGS)					\
 	      -DGSTD_LOG_STATE_DIR=\"$(gstdlogstatedir)\"	\
 	      -DGSTD_RUN_STATE_DIR=\"$(gstdrunstatedir)\"
 
-gstd_LDFLAGS = $(GST_LIBS) $(GIO_LIBS) $(GJSON_LIBS) $(LIBD_LIBS) -Wl,-rpath -Wl,$(libdir)
+gstd_LDFLAGS = $(GST_LIBS) $(GIO_LIBS) $(GJSON_LIBS) $(LIBD_LIBS) $(SYSTEMD_LIBS) -Wl,-rpath -Wl,$(libdir)
 gstd_LDADD = libgstd-core.la
 
 gstdincludedir = $(includedir)/gstd
