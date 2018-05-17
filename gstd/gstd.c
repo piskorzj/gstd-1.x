@@ -21,6 +21,8 @@
 #include "config.h"
 #endif
 
+#include <systemd/sd-daemon.h>
+
 #include <stdlib.h>
 #include <gst/gst.h>
 #include <glib-unix.h>
@@ -66,6 +68,13 @@ int_handler (gpointer user_data)
   g_main_loop_quit (main_loop);
 
   return TRUE;
+}
+
+static gboolean watchdog_callback(gpointer user_data)
+{
+	sd_notify(0, "WATCHDOG=1");
+
+	return TRUE;
 }
 
 static void
@@ -149,6 +158,8 @@ main (gint argc, gchar * argv[])
   GOptionContext *context;
   GOptionGroup *gstreamer_group;
   gint ret = EXIT_SUCCESS;
+  guint watchdog;
+  const char *watchdog_usec;
 
   /* Array to specify gstd how many IPCs are supported, 
    * IPCs should be added this array.
@@ -244,11 +255,31 @@ main (gint argc, gchar * argv[])
   g_unix_signal_add (SIGINT, int_handler, main_loop);
 
   GST_INFO ("Gstd started");
+
+	watchdog_usec = getenv("WATCHDOG_USEC");
+	if (watchdog_usec) {
+		unsigned int seconds;
+
+		seconds = atoi(watchdog_usec) / (1000 * 1000);
+		GST_INFO ("Watchdog timeout is %d seconds", seconds);
+
+		watchdog = g_timeout_add_seconds_full(G_PRIORITY_HIGH,
+							seconds / 2,
+							watchdog_callback,
+							NULL, NULL);
+	} else
+		watchdog = 0;
+
+  sd_notify(0, "READY=1");
+
   g_main_loop_run (main_loop);
 
   /* Application shut down */
   g_main_loop_unref (main_loop);
   main_loop = NULL;
+
+  if (watchdog > 0)
+    g_source_remove(watchdog);
 
   /* Stop any IPC array */
   ipc_stop (ipc_array, num_ipcs);
